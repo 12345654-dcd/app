@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima y Alergias</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F7F7F7;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #2E4053;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 450px;
+            margin: auto;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .scroll-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background: #FAFAFA;
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        .result-container {
+            background: white;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 500px;
+            margin: auto;
+            text-align: left;
+            position: relative;
+        }
+
+        .result-container .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: transparent;
+            border: none;
+            font-size: 20px;
+            color: #2E4053;
+            cursor: pointer;
+        }
+
+        .recomendaciones {
+            background: #F2F2F2;
+            border-left: 5px solid #4CAF50;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .error {
+            color: #FF3737;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>WeatherApp</h1>
+
+    <!-- Formulario -->
+    <div class="container">
+        <form method="POST">
+            <label for="ciudad">🌍 Ingresa tu ciudad:</label>
+            <input type="text" id="ciudad" name="ciudad" required placeholder="Ej. Ciudad de México">
+            
+            <h3>🤧 Selecciona tus síntomas:</h3>
+            <div class="scroll-container">
+                <label><input type="checkbox" name="sintomas" value="estornudos"> 🤧 Estornudos</label><br>
+                <label><input type="checkbox" name="sintomas" value="congestión nasal"> 🤕 Congestión nasal</label><br>
+                <label><input type="checkbox" name="sintomas" value="ojos llorosos"> 😢 Ojos llorosos</label><br>
+                <label><input type="checkbox" name="sintomas" value="picazón en la garganta"> 😣 Picazón en la garganta</label><br>
+                <label><input type="checkbox" name="sintomas" value="dolor de cabeza"> 🤯 Dolor de cabeza</label><br>
+                <label><input type="checkbox" name="sintomas" value="fatiga"> 😴 Fatiga</label><br>
+                <label><input type="checkbox" name="sintomas" value="fiebre leve"> 🌡️ Fiebre leve</label><br>
+                <label><input type="checkbox" name="sintomas" value="dificultad para respirar"> 😮‍💨 Dificultad para respirar</label><br>
+                <label><input type="checkbox" name="sintomas" value="erupciones en la piel"> 🩹 Erupciones en la piel</label><br>
+                <label><input type="checkbox" name="sintomas" value="tos seca"> 🤧 Tos seca</label><br>
+                <label><input type="checkbox" name="sintomas" value="mareos"> 😵‍💫 Mareos</label><br>
+                <label><input type="checkbox" name="sintomas" value="picazón en la nariz"> 👃 Picazón en la nariz</label><br>
+                <label><input type="checkbox" name="sintomas" value="secreción nasal"> 🤧 Secreción nasal</label><br>
+            </div>
+
+            <button type="submit">🔍 Consultar</button>
+        </form>
+    </div>
+
+    <!-- Sección de Búsqueda con IA -->
+    <div class="container" style="margin-top: 30px;">
+        <h2>💡 Búsqueda Personalizada</h2>
+        <input type="text" id="pregunta" placeholder="¿Qué necesitas saber sobre alergias o clima?">
+        <button id="boton-buscar" type="button">Buscar</button>
+        
+        <!-- Cuadro de Resultados de IA -->
+        <div id="resultado-ia" class="result-container" style="display: none; margin-top: 20px;">
+            <button class="close-btn" onclick="cerrarResultadoIA()">X</button>
+            <div id="contenido-resultado"></div>
+        </div>
+    </div>
+
+    <!-- Botón para ver el historial -->
+    <div class="container" style="margin-top: 30px;">
+        <button id="ver-historial" type="button">📜 Ver Historial de Consultas</button>
+    </div>
+
+    <!-- Sección de Resultados -->
+    {% if clima or recomendaciones %}
+    <div class="result-container" id="resultados">
+        <button class="close-btn" onclick="cerrarResultados()">X</button>
+        
+        {% if clima %}
+        <h2>☀️ Clima en {{ ciudad }}</h2>
+        <p>🌡️ <b>Temperatura:</b> {{ clima.temperatura }}°C</p>
+        <p>💧 <b>Humedad:</b> {{ clima.humedad }}%</p>
+        <p>🌤️ <b>Descripción:</b> {{ clima.descripcion }}</p>
+        <p>🌞 <b>Índice UV:</b> {{ clima.uv }}</p>
+        <p>💨 <b>Viento:</b> {{ clima.viento }} m/s</p>
+        <p>🕒 <b>Última actualización:</b> {{ clima.hora }}</p>
+        {% endif %}
+        
+        {% if recomendaciones %}
+        <h2>💡 Recomendaciones</h2>
+        {% for rec in recomendaciones %}
+        <div class="recomendaciones">
+            ✅ {{ rec[0] }}<br>
+            <i>{{ rec[1] }}</i>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Sección de errores -->
+    {% if error %}
+    <p class="error">⚠️ {{ error }}</p>
+    {% endif %}
+
+    <!-- Código JavaScript -->
+    <script>
+        // Función para abrir la ventana de historial
+        function abrirHistorial() {
+            const ancho = 800;
+            const alto = 600;
+            const izquierda = (screen.width - ancho) / 2;
+            const arriba = (screen.height - alto) / 2;
+
+            const historialWindow = window.open(
+                '',
+                'Historial',
+                `width=${ancho},height=${alto},left=${izquierda},top=${arriba},resizable=yes,scrollbars=yes`
+            );
+
+            historialWindow.document.write(`
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Historial de Consultas</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        th, td {
+                            border: 1px solid #ddd;
+                            padding: 8px;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                        button {
+                            background-color: #4CAF50;
+                            color: white;
+                            border: none;
+                            padding: 10px 15px;
+                            font-size: 16px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            margin-top: 20px;
+                        }
+                        button:hover {
+                            background-color: #3e8e41;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h3>Historial de Consultas</h3>
+                    <table>
+                        <tr>
+                            <th>Ciudad</th>
+                            <th>Síntomas</th>
+                            <th>Recomendaciones</th>
+                            <th>Fecha</th>
+                        </tr>
+                        {% for consulta in historial %}
+                        <tr>
+                            <td>{{ consulta[0] }}</td>
+                            <td>{{ consulta[1] }}</td>
+                            <td>{{ consulta[2] }}</td>
+                            <td>{{ consulta[3] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    <button onclick="window.close()">Cerrar</button>
+                </body>
+                </html>
+            `);
+
+            historialWindow.document.close();
+        }
+
+        // Evento para abrir el historial
+        document.getElementById('ver-historial').addEventListener('click', abrirHistorial);
+
+        // Función para cerrar resultados
+        function cerrarResultados() {
+            document.getElementById('resultados').style.display = 'none';
+        }
+
+        // Función para cerrar resultados de IA
+        function cerrarResultadoIA() {
+            document.getElementById('resultado-ia').style.display = 'none';
+        }
+
+        // Búsqueda con IA
+        function buscarEnIA() {
+            const pregunta = document.getElementById('pregunta').value.trim();
+            const resultado = document.getElementById('resultado-ia');
+            const contenido = document.getElementById('contenido-resultado');
+
+            if (!pregunta) return;
+
+            resultado.style.display = 'block';
+            contenido.innerHTML = '<p>Analizando... 🧠</p>';
+
+            // Llamada al backend Flask
+            fetch('/consultar-ia', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ pregunta: pregunta })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    contenido.innerHTML = `<h3>Error:</h3><p>${data.error}</p>`;
+                } else {
+                    contenido.innerHTML = `<h3>Respuesta:</h3><p>${data.respuesta}</p>`;
+                }
+            })
+            .catch(error => {
+                contenido.innerHTML = `<h3>Error:</h3><p>No se pudo obtener una respuesta. Inténtalo de nuevo.</p>`;
+                console.error('Error:', error);
+            });
+        }
+
+        // Eventos para búsqueda con IA
+        document.getElementById('boton-buscar').addEventListener('click', buscarEnIA);
+        document.getElementById('pregunta').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') buscarEnIA();
+        });
+
+        // Función para cerrar resultados del clima y recomendaciones
+        function cerrarResultados() {
+            document.getElementById('resultados').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

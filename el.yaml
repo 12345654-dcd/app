@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: clima-alergias
+    env: python
+    buildCommand: ""
+    startCommand: python app.py
+    envVars:
+      - key: ZEOP2SH22uTBcYvF45V8KxSrGOig9wqRBoGbIvqM
+        value: TU_API_KEY_COHERE
+      - key: 324039eadaafe607cbd9847c23b6b7d5
+        value: TU_API_KEY_OPENWEATHERMAP
